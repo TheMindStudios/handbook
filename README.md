@@ -9,6 +9,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Building HTTP client](guides/building_http_client.md)
   - [Code Style](guides/code_style.md)
   - [Gitflow](guides/gitflow.md)
+  - [Deployment](guides/deployment.md)
 
 ### Inspired by
 
