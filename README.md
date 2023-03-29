@@ -1,2 +1,22 @@
-# handbook
-📙 MindStudios Developer's Handbook - set of guides and recipes for backend developers in our company
+# MindStudios Handbook
+
+Our collection of guides, recipes and scripts for helping you get things done, better.
+
+## Table of Contents
+
+* [Guides](guides/)
+  - [Project setup](guides/project_setup.md)
+
+### Inspired by
+
+* https://github.com/ergoserv/handbook
+* https://github.com/basecamp/handbook
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/TheMindStudios/handbook. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org/) code of conduct.
+
+## License
+
+These resources are copyright of [MindStudios](https://themindstudios.com). It is free software and available to distribute under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+
