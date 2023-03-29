@@ -12,7 +12,7 @@ For building HTTP Client we are using [faraday](https://github.com/lostisland/fa
 
 ## Examples
 
-### EdcastLmsClient
+### FacebookClient
 
 ```ruby
 # app/services/facebook_client.rb
