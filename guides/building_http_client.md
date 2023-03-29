@@ -2,7 +2,7 @@
 
 ## Introduction
 
-For building HTTP Client [httparty](https://github.com/lostisland/faraday).
+For building HTTP Client we are using [faraday](https://github.com/lostisland/faraday).
 
 ## Conventions
 
