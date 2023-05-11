@@ -7,6 +7,8 @@ Our collection of guides, recipes and scripts for helping you get things done, b
 * [Guides](guides/)
   - [Project setup](guides/project_setup.md)
   - [Service Objects](guides/service_objects.md)
+  - [Configuration](guides/configuration.md)
+  - [Error Handling](guides/error_handling.md)
   - [Building HTTP client](guides/building_http_client.md)
   - [Code Style](guides/code_style.md)
   - [Gitflow](guides/gitflow.md)
