@@ -6,6 +6,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
 
 * [Guides](guides/)
   - [Project setup](guides/project_setup.md)
+  - [Admin Panel](guides/admin_panel.md)
   - [Service Objects](guides/service_objects.md)
   - [Configuration](guides/configuration.md)
   - [Error Handling](guides/error_handling.md)
@@ -15,6 +16,8 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Gitlab CI](guides/gitlab_ci.md)
   - [Deployment](guides/deployment.md)
   - [Libraries](guides/libraries.md)
+  - [Query Objects](guides/query_objects.md)
+  - [Policies](guides/policies.md)
 
 ### Inspired by
 
