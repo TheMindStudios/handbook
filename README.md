@@ -7,6 +7,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
 * [Guides](guides/)
   - [Project setup](guides/project_setup.md)
   - [Admin Panel](guides/admin_panel.md)
+  - [Building API](guides/building_api.md)
   - [Service Objects](guides/service_objects.md)
   - [Configuration](guides/configuration.md)
   - [Error Handling](guides/error_handling.md)

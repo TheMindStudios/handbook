@@ -31,6 +31,21 @@ API is an important part of web applications. They provide interfaces for commun
   }
   ```
 
+Sometimes you need to use **cursor-based pagination**. It is a technique for pagination that avoids many of the pitfalls of **per page** pagination. An endpoint with pagination params applied could look like this: `/api/v1/countries?page[after]=dQw4w9&page[size]=10`. `page[after]` can be replaced with `page[before]` if we want to retrieve records preceding a cursor. Then response for this type of pagination looks like this:
+
+```ruby
+{
+  "items": [
+    # collection of items to be rendered
+  ],
+  "pagination": {
+    "after": "MjAyMC0wNS0xMlQxNTo1MzowMC4wMDBa",
+    "before": "MjAyMC0wNS0xMlQxNTo1MzowMC4wMDBa",
+    "size": 10,
+  }
+}
+```
+
 - We use `versioncake` gem for API versioning. You can find more information about it [here](https://github.com/bwillis/versioncake)
 
 ### Example Classes
@@ -107,6 +122,7 @@ Some of the more commonly used HTTP status codes are:
 For more information about HTTP status codes, please refer to [this article](https://www.restapitutorial.com/httpstatuscodes.html).
 
 ## CORS
+
 For local development of frontend apps, we need to allow cross-origin requests. We use `rack-cors` gem for this purpose. You can find more information about it [here](https://github.com/ynab/rack-cors).
 
 Example configuration:
