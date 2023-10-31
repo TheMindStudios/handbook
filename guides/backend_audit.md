@@ -75,6 +75,8 @@ code_quality_html:
 
 Then you can find CodeClimate report in `code_quality_html` pipeline artifacts and download it.
 
+For **Complexity score** we use Cognitive complexity metric from **codeclimate** and Cyclomatic complexity metric from **rubocop**. We check by maximum value of these metrics. We also check that there are no methods with more than 5 arguments. You can find more information about these metrics in [CodeClimate documentation](https://docs.codeclimate.com/docs/cognitive-complexity) and [Rubocop documentation](https://docs.rubocop.org/rubocop/cops_metrics.html#metricscomplexity).
+
 <img src="../images/audit/code_quality.png" alt="Code Quality" width="800"/>
 
 __________________________
