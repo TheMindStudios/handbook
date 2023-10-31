@@ -15,6 +15,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Code Style](guides/code_style.md)
   - [Gitflow](guides/gitflow.md)
   - [Gitlab CI](guides/gitlab_ci.md)
+  - [Backend Audit](guides/backend_audit.md)
   - [Deployment](guides/deployment.md)
   - [Libraries](guides/libraries.md)
   - [Query Objects](guides/query_objects.md)
