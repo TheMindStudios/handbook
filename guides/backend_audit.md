@@ -83,7 +83,13 @@ __________________________
 
 ### Performance
 
-The section of audit is related to applicaiton performance. [Datadog](https://www.datadoghq.com/blog/monitoring-rails-with-datadog/) is a monitoring tool that helps to identify performance issues in real-time. It can be used to track metrics such as response time, throughput, and error rates. The requirement of requests not exceeding 1s in pt50 is a performance metric that ensures that the backend system is responding quickly to user requests. The [Bullet](https://github.com/flyerhzm/bullet) gem is used to detect slow database queries and improve performance in development and test environments.
+The section of audit is related to applicaiton performance. [Datadog](https://www.datadoghq.com/blog/monitoring-rails-with-datadog/) is a monitoring tool that helps to identify performance issues in real-time. It can be used to track metrics such as response time, throughput, and error rates. The requirement of requests not exceeding 1s in pt50 is a performance metric that ensures that the backend system is responding quickly to user requests.
+
+You can find this information in **APM** tab in Datadog. You need to find `rails` or `$APP_NAME-server` in `Services` section and click on it. Choose `operation:rack_request` and `env:production` if you've enabled Datadog for several environments. Then you will see `Requests` section with `pt50` and `pt95` metrics. You can find more information about these metrics in [Datadog documentation](https://docs.datadoghq.com/tracing/metrics/).
+
+<img src="../images/audit/datadog_apm.png" alt="Datadog" width="800"/>
+
+The [Bullet](https://github.com/flyerhzm/bullet) gem is used to detect slow database queries and improve performance in development and test environments.
 
 <img src="../images/audit/performance.png" alt="Performance" width="800"/>
 
