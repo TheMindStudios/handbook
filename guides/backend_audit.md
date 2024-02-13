@@ -5,6 +5,7 @@
 - [Security](#security)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [Localization](#localization)
 - [CI/CD](#cicd)
 - [Error monitoring](#error-monitoring)
 
@@ -182,6 +183,62 @@ You also need to provide proper `Authorization` if request requires one. In most
 Please provide `token` variable with valid user token in corresponding Postman environment. It will make faster for other developers to use your collection, because they will not need to create user in advance. You can find more information about environment variables in [Postman documentation](https://learning.postman.com/docs/sending-requests/variables/).
 
 <img src="../images/audit/documentation.png" alt="Documentation" width="800"/>
+
+__________________________
+
+### Localization
+
+This section is about **localization** of the project. [i18n](https://guides.rubyonrails.org/i18n.html) is a tool that helps to localize Ruby on Rails applications. It can be used to translate text, dates, and numbers into different languages. The requirement of having all specific business logic documented ensures that the backend system is well localized and easy to understand for users from different countries.
+
+You need to check that all strings are translated and there are no untranslated strings. You can find all untranslated strings in `config/locales` folder. We are checking project for hardcoded strings inside templates with [erb-lint](https://github.com/Shopify/erb-lint) and [rubocop-i18n](https://github.com/puppetlabs/rubocop-i18n) for detecting hardcoded strings in Ruby code. We are also using [i18n-tasks](https://github.com/glebm/i18n-tasks) gem to find missing and unused translations.
+
+To enabled hardcoded strings check in `erb-lint` add the following lines to `.erb-lint.yml`:
+
+```yaml
+HardCodedString:
+  enabled: true
+```
+For `rubocop-i18n` add the following lines to `.rubocop.yml`:
+
+```yaml
+require:
+  - rubocop-i18n
+
+# Added in version 2.14 of rubocop-rails
+Rails/I18nLocaleTexts:
+  Enabled: true
+
+Rails/I18nLazyLookup:
+  Enabled: true
+  EnforcedStyle: explicit
+
+I18n/GetText:
+  Enabled: false
+
+I18n/RailsI18n:
+  Enabled: true
+
+I18n/RailsI18n/DecorateStringFormattingUsingInterpolation:
+  Enabled: false
+```
+
+To ensure that these checks are running in Gitlab CI, add the following lines to `.gitlab-ci.yml`:
+
+```yaml
+lint_html:
+  extends: .base
+  stage: lint
+  script:
+    - bundle exec erblint --lint-all
+
+lint_translations:
+  extends: .base
+  stage: lint
+  script:
+    - bundle exec i18n-tasks missing
+```
+
+<img src="../images/audit/localization.png" alt="Localization" width="800"/>
 
 __________________________
 
