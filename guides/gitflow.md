@@ -1,57 +1,93 @@
 # Gitflow
 
-## Main assumptions
+This document outlines our branching and merging strategy, which is primarily based on GitLab Flow with a few key adaptations to fit our development workflow. We prioritize a stable `main` branch representing production, a `staging` branch representing the next release, and a `development` branch for ongoing feature integration and testing.
 
-1. At first all feature branches are created from **development** (can be dev or develop). Branches that contains bug fixes can be created from **staging** or **main** branches.
+## Main Assumptions
 
-2. Name of branch should contain task from Jira. For example, **task/EA-967_website_updates**. Possible prefixes for branch names: task, story, bug.
+1.  **Branch Creation:**
+    *   **Feature Branches:**  New feature branches are created from a stable branch, typically `staging`. In some project-specific cases, they might be created from `main`.  The goal is to branch off from the code that most closely resembles the environment where the feature will eventually be deployed.
+    *   **Bug Fix Branches:** Bug fix branches are created from the branch where the bug is identified. This prioritizes fixing issues in the relevant environment:
+        *   **Production Bugs:** Branch from `main`.
+        *   **Staging Bugs:** Branch from `staging`.
+        *   **Development (Dev) Bugs:** Ideally, fix the bug directly in the relevant feature branch.  If the bug is not specific to a feature, create a bug fix branch from *the feature branch* where the issue was discovered. This avoids contaminating `staging` or `main` with untested fixes.
 
-3. You commit messages should follow [Conventional commit guidelines](https://www.conventionalcommits.org/en/v1.0.0/).
+2.  **Branch Naming:** Branch names should include the Jira task ID for traceability.  Example: `task/EA-967_website_updates`.  Allowed prefixes: `task`, `story`, `bug`.
 
-4. Only Team Lead or lead project developer can have access to deploy branches (dev, staging or master). Other team members shouldn't try to push directly, only through merge request process.
+3.  **Commit Messages:**  All commit messages *must* adhere to the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/). This ensures consistent and informative commit history, which is crucial for automated release notes.
+
+4.  **Restricted Access:** Only Team Leads or designated lead project developers have direct push access to protected branches (`main`, `staging`). All other team members must use merge requests.
 
 ## Branches
 
-Branch                                   | May branch off from       | Must merge back into          | Description
----------------------------------------- | ------------------------- | ----------------------------- | -----------
-`main`                                   | —                         | `staging`, `development`      | The latest stable version of the code base.
-`development`                            | `main`                    | `staging`                     | Default branch to create new branches from and target branch for Merge requests.
-`task/subject`, `task/xxx-subject`       | `staging`, `development`  | `development`, `staging`      | Use for developing new features. Merged into `development` or `staging` depending on your release process. When all features developed in the sprint go to release, then you merge `task` branch into `development`. When each task should be released independently, you merge  `task` branch into `staging` after testing on `development`. `xxx` - issue ID in task tracker like JIRA, `subject` - issue subject.
-`bug/subject`, `bug/xxx-subject`         | `main`                    | `main`, `development`         | Maintenance or "hotfix" branches are used to quickly patch production releases. Where `xxx` - issue ID in task tracker like JIRA, `subject` - issue subject.
-`staging`                                | `development`             | —                             | Represents the current staging server state. development, task/\*, bug/\* branches may be merged here directly for testing and demonstration.
+| Branch                             | May branch off from            | Must merge back into        | Description                                                                                                                                                                                                      |
+|------------------------------------|--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `main`                             | —                              | —                           | Represents the live, production code. This branch is always stable and deployable.  Merges come only from `staging` (after a release) and occasionally from `bug/*` branches (hotfixes).                  |
+| `staging`                          | `main`                         | `main`                      | Represents the next release candidate. All features planned for the upcoming release accumulate here.  This branch is merged into `main` after release confirmation, triggering the automated release process. |
+| `development`                      | `main` at the start of development               | -             | Default branch for features testing and demonstration after merge request from features branches.                                                                                                                |
+| `task/subject`, `task/xxx-subject` | `staging`, (occasionally `main`) | `development`, `staging`                        | Used for developing new features.  `xxx` is the Jira issue ID, and `subject` briefly describes the feature.  These branches are merged into `development` for integration testing.                        |
+| `bug/subject`, `bug/xxx-subject`    | `main`, `staging`, feature branches | `main`,`staging`, `development`, feature branches         | Used for fixing bugs. The branching point depends on where the bug was found (see assumption #1). `xxx` = Jira ID, `subject` = short description. The merge target mirrors the branching point.      |
 
-## Steps to create merge request
+## Merge Request Steps
 
-1. The developer will pull latest changes from **development** branch
+1.  **Pull Latest:**  Before starting work, pull the latest changes from the target stable branch (`staging` in most cases, or `main` if required by the project).
 
-2. The developer will create a branch with Jira issue id followed by issue type and title eg. **task/UNIGHT-760_update_login_screen**. Available types: **bug, task, story**.
+2.  **Create Branch:** Create a new branch with the appropriate prefix and Jira issue ID:  `task/UNIGHT-760_update_login_screen`.  Valid prefixes: `bug`, `task`, `story`.
 
-3. The developer will fix the issue.
+3.  **Implement & Test:** Develop the feature/fix, and create corresponding unit and integration tests.
 
-4. The developer will create unit and integration tests as applicable.
+4.  **API Documentation:** Ensure all new requests are documented in the project's Postman collection or Swagger documentation.
 
-5. The developer will check that all new requests were added to Postman collection or Swagger for current project.
+5.  **Pre-Commit Checklist:**
+    *   Thoroughly review your changes using `git diff` or your IDE's diff tools. Remove any unintentional changes (local testing configurations, unnecessary logs, etc.).
+    *   Use `git status` or your IDE to confirm that all necessary files are staged for commit.
 
-6. The developer will go through the checklist before creating merge request.
+6.  **Merge and Resolve Conflicts:** Switch to the `development` branch, pull the latest changes from it, and merge it with your local branch, fixing merge conflicts if needed.
 
-7. Before commit the developer will check changes made using `git diff`, or IDE tools. Unnecessary changes should be removed from code (local changes make in secrets/credentials for testing, unnecessary logging etc...)
+7.  **Local Testing:**  After merging with `development`, ensure the application runs locally without errors.  Run all relevant tests.
 
-8. Before commit the developer will check the status of changed files using git status or IDE tools, to ensure that all necessary files are added to commit.
+8.  **Create Merge Request:**  If tests pass, create a merge request targeting the `development` branch.
 
-9. The developer will switch to the **development** branch, pull latest changes from it and will merge it with his local branch fixing merge conflicts if needed.
+9.  **Notify Team:** Copy the merge request link and post it in the `#backend` channel, tagging `@channel` or directly notifying the Team Lead.
 
-10. The developer will ensure that the server runs locally without errors after the merge process.
+10. **Code Review:** A developer *other than the author* must review the merge request.
 
-11. If the unit and integration tests run successfully will create a merge request.
+11. **Reviewer Checklist:** The reviewer should rigorously examine the code, address any checklist items, and provide feedback in the merge request.
 
-12. The developer will then copy the link of merge request and paste it into the **#backend** channel and tag **@channel** or to Team Lead direct messages.
+12. **Address Feedback:** The merge request owner addresses any comments, resolves conflicts, and updates the merge request.  Post an updated link in the *same thread* as the original.
 
-13. The developer other than the one that owns the merge request will review it.
+13. **Merge:** If the code review passes, the reviewer approves and merges the code.  The reviewer *must* check the "**Delete source branch**" option during the merge.
 
-14. The developer that reviews will go through the checklist again and then review the merge request.
+## Release Process (Automated via GitLab CI)
 
-15. If there are any suggestions or any of the points of the checklist that are applicable but missed, the reviewer will comment on the merge request.
+The release process is automated via GitLab CI/CD jobs triggered by merges into the `main` branch.  Here's a breakdown of the process:
 
-16. The owner of the merge request then performs the update again and resolves conflicts if any and again puts a fresh link in the same thread as the original one.
+1.  **Merge to Main:** The release process begins when `staging` is merged into `main`. No manual release creation is needed.
 
-17. If the code review passes the reviewer approves and then merges the code and deletes the branch by keep the checkbox **Delete source branch** checked when merging.
+2.  **Automated CI Jobs:** To enable automated releases, include the following in your project's `.gitlab-ci.yml` file:
+
+    ```yaml
+    include:
+      - project: 'web/ci-templates'
+        ref: main
+        file: '/templates/release.yml'
+    ```
+    This includes a predefined CI/CD template (`release.yml`) from a central repository (`web/ci-templates`). This template contains the necessary jobs:
+    *   **`prepare_release_job`:**
+        *   Reads the `VERSION` file to determine the new release version (and tag).
+        *   Determines the previous tag (`PREV_TAG`) using Git commands and, if necessary, the GitLab Releases API. If no previous tag exists, it uses the first commit as a fallback.
+        *   Generates a `release.description` file containing the changelog, using a custom Rake task (`changelog:generate`) that processes conventional commits between `PREV_TAG` and the current commit. This changelog is structured into sections based on commit types.
+        *   Creates a `variables.env` file to pass `TAG` and `PREV_TAG` to the next job.
+
+    *   **`release_job`:**
+        *   Uses the `release-cli` to create a GitLab release.
+        *   Sets the release name to "Release $TAG".
+        *   Uses the generated `release.description` for the release notes.
+        *   Creates a tag named `v$TAG` (automatically prepending "v" to the version from the `VERSION` file).
+        *    References the commit SHA (`$CI_COMMIT_SHA`) of the merge commit.
+**Key Differences from Standard Gitflow:**
+
+*   **Development Branch:** Instead of being long-lived and merging back into `staging`/`main`, our `development` branch serves as a integration point for feature testing.
+*   **Branching Point:** Feature branches typically originate from `staging` (the next release) rather than `development`.
+*   **Release Process:** We leverage GitLab's *automated* release feature, creating releases directly from CI/CD jobs triggered by merges to `main` and using the `VERSION` file and automatically generated change log and git tag.
+*   Feature branch are merged directly to dev and QA make testing based on development or dev branch.
+*   Development or dev branch must be never merged into staging.
