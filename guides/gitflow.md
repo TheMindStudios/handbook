@@ -84,6 +84,7 @@ The release process is automated via GitLab CI/CD jobs triggered by merges into 
         *   Uses the generated `release.description` for the release notes.
         *   Creates a tag named `v$TAG` (automatically prepending "v" to the version from the `VERSION` file).
         *    References the commit SHA (`$CI_COMMIT_SHA`) of the merge commit.
+
 **Key Differences from Standard Gitflow:**
 
 *   **Development Branch:** Instead of being long-lived and merging back into `staging`/`main`, our `development` branch serves as a integration point for feature testing.
