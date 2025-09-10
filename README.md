@@ -20,6 +20,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Libraries](guides/libraries.md)
   - [Query Objects](guides/query_objects.md)
   - [Policies](guides/policies.md)
+  - [Store Secrets](guides/store_secrets.md)
 
 ### Inspired by
 
