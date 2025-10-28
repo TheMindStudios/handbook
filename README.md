@@ -21,6 +21,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Query Objects](guides/query_objects.md)
   - [Policies](guides/policies.md)
   - [Store Secrets](guides/store_secrets.md)
+  - [Localization](guides/localization.md)
 
 ### Inspired by
 
