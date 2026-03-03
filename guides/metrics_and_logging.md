@@ -11,6 +11,7 @@ This guide covers integrating **Yabeda** (Prometheus metrics) and **Lograge** (s
   - [Sidekiq Metrics](#sidekiq-metrics)
   - [Custom Metrics](#custom-metrics)
   - [Accessing Metrics](#accessing-metrics)
+  - [Protecting Metrics with Basic Auth](#protecting-metrics-with-basic-auth)
 - [Grafana Dashboard](#grafana-dashboard)
 - [Structured Logging with Lograge](#structured-logging-with-lograge)
   - [Installation](#lograge-installation)
@@ -119,12 +120,58 @@ Mount the Prometheus exporter in `config/routes.rb`:
 
 ```ruby
 require "yabeda/prometheus/exporter"
-mount Yabeda::Prometheus::Exporter, at: "/metrics"
+mount Yabeda::Prometheus::Exporter => "/metrics"
 ```
 
 Metrics will be available at `GET /metrics` in Prometheus text format. Point your Prometheus scrape config at this endpoint.
 
-> **Security:** In production, restrict access to `/metrics` via a firewall rule, ingress configuration, or Rack middleware. Do not expose it publicly.
+> **Security:** In production, always protect `/metrics` with basic auth (see below), a firewall rule, or ingress configuration. Do not expose it publicly without authentication.
+
+### Protecting Metrics with Basic Auth
+
+Add a route constraint that validates HTTP Basic Auth credentials directly in `config/routes.rb`:
+
+```ruby
+require "yabeda/prometheus/exporter"
+
+mount Yabeda::Prometheus::Exporter => "/metrics",
+      constraints: lambda { |req|
+        metrics_user = ENV.fetch("METRICS_USER", nil)
+        metrics_password = ENV.fetch("METRICS_PASSWORD", nil)
+
+        next false if metrics_user.blank? || metrics_password.blank?
+
+        auth = req.get_header("HTTP_AUTHORIZATION")
+        if auth.present? && auth.start_with?("Basic ")
+          decoded = Base64.decode64(auth.sub("Basic ", ""))
+          user, pass = decoded.split(":", 2)
+          ActiveSupport::SecurityUtils.secure_compare(user, metrics_user) &
+            ActiveSupport::SecurityUtils.secure_compare(pass, metrics_password)
+        end
+      }
+```
+
+Set the credentials via environment variables:
+
+```bash
+METRICS_USER=prometheus
+METRICS_PASSWORD=your-secret
+```
+
+When either variable is missing the constraint returns `false` and Rails responds with `404`, keeping the endpoint invisible.
+
+Update your Prometheus scrape config to include the credentials:
+
+```yaml
+scrape_configs:
+  - job_name: "my_app"
+    scheme: https
+    basic_auth:
+      username: "prometheus"
+      password: "your-secret"
+    static_configs:
+      - targets: ["app.example.com"]
+```
 
 ---
 
