@@ -12,6 +12,11 @@ This guide covers integrating **Yabeda** (Prometheus metrics) and **Lograge** (s
   - [Custom Metrics](#custom-metrics)
   - [Accessing Metrics](#accessing-metrics)
   - [Protecting Metrics with Basic Auth](#protecting-metrics-with-basic-auth)
+- [Application Performance Monitoring with Elastic APM](#application-performance-monitoring-with-elastic-apm)
+  - [Elastic APM Installation](#elastic-apm-installation)
+  - [Elastic APM Configuration](#elastic-apm-configuration)
+  - [Attaching Current User to Elastic APM Traces](#attaching-current-user-to-elastic-apm-traces)
+  - [Disabling Elastic APM for Health and Metrics Endpoints](#disabling-elastic-apm-for-health-and-metrics-endpoints)
 - [Grafana Dashboard](#grafana-dashboard)
 - [Structured Logging with Lograge](#structured-logging-with-lograge)
   - [Installation](#lograge-installation)
@@ -172,6 +177,145 @@ scrape_configs:
     static_configs:
       - targets: ["app.example.com"]
 ```
+
+---
+
+## Application Performance Monitoring with Elastic APM
+
+[Elastic APM](https://www.elastic.co/observability/application-performance-monitoring) adds distributed tracing, transaction timing, error capture, and dependency visibility on top of metrics and logs. In Rails apps it automatically instruments incoming HTTP requests, database queries, external HTTP calls, background jobs, and more.
+
+### Elastic APM Installation
+
+Add the gem to your `Gemfile`:
+
+```ruby
+gem "elastic-apm"
+```
+
+Then run:
+
+```bash
+bundle install
+```
+
+### Elastic APM Configuration
+
+Create `config/elastic_apm.yml`:
+
+```yaml
+defaults: &defaults
+  service_name: my_app # replace with your app name
+  secret_token: <%= ENV.fetch("ELASTIC_APM_SECRET_TOKEN", nil) %>
+  server_url: <%= ENV.fetch("ELASTIC_APM_SERVER_URL", "http://localhost:8200") %>
+  environment: <%= Rails.env %>
+  enabled: <%= ENV.fetch("ELASTIC_APM_ENABLED", Rails.env.production?.to_s) %>
+  capture_body: errors
+  log_level: info
+
+production:
+  <<: *defaults
+
+development:
+  <<: *defaults
+  enabled: true
+
+test:
+  <<: *defaults
+  enabled: false
+```
+
+If you prefer an initializer for additional tuning, create `config/initializers/elastic_apm.rb`:
+
+```ruby
+# frozen_string_literal: true
+
+ElasticAPM.start(
+  config_path: Rails.root.join("config/elastic_apm.yml"),
+  service_version: ENV.fetch("APP_REVISION", nil)
+)
+
+at_exit do
+  ElasticAPM.stop
+end
+```
+
+Set the required environment variables in your deployment platform:
+
+```bash
+ELASTIC_APM_ENABLED=true
+ELASTIC_APM_SERVER_URL=https://apm.example.com:8200
+ELASTIC_APM_SECRET_TOKEN=your-secret-token
+```
+
+Once configured, Rails transactions and captured errors will appear in Elastic APM under the configured `service_name`.
+
+### Attaching Current User to Elastic APM Traces
+
+You can enrich traces and captured errors with the current user so debugging production issues is easier.
+
+Add a `before_action` in `ApplicationController`:
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :set_apm_user
+
+  private
+
+  def set_apm_user
+    return unless current_user
+
+    ElasticAPM.set_user(
+      id: current_user.id,
+      email: current_user.email,
+      username: current_user.respond_to?(:username) ? current_user.username : nil
+    )
+  end
+end
+```
+
+For additional searchable metadata, you can also attach labels or custom context:
+
+```ruby
+ElasticAPM.set_label(:account_id, current_user.account_id)
+ElasticAPM.set_label(:role, current_user.role)
+
+ElasticAPM.set_custom_context(
+  account_id: current_user.account_id,
+  role: current_user.role
+)
+```
+
+Prefer stable identifiers such as `id` or `account_id`, and avoid sending sensitive personal data unless your security and privacy policies explicitly allow it.
+
+### Disabling Elastic APM for Health and Metrics Endpoints
+
+Healthcheck and scrape endpoints such as `/up`, `/metrics`, `/health`, and `/readiness` usually create noisy low-value traces. Exclude them using `ignore_url_patterns` in `config/elastic_apm.yml`:
+
+```yaml
+defaults: &defaults
+  # ... other config ...
+  ignore_url_patterns:
+    - ^/up$
+    - ^/metrics$
+    - ^/health$
+    - ^/readiness$
+    - ^/liveness$
+```
+
+These patterns are regular expressions matched against the request path. Add any internal-only endpoints you do not want traced.
+
+If you need environment-specific exclusions, override them per environment:
+
+```yaml
+production:
+  <<: *defaults
+  ignore_url_patterns:
+    - ^/up$
+    - ^/metrics$
+    - ^/internal/.*
+```
+
+Use this for endpoints hit very frequently by load balancers, Kubernetes probes, Prometheus, or uptime monitors.
 
 ---
 
