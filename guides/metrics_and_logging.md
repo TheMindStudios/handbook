@@ -203,25 +203,36 @@ bundle install
 Create `config/elastic_apm.yml`:
 
 ```yaml
-defaults: &defaults
-  service_name: my_app # replace with your app name
-  secret_token: <%= ENV.fetch("ELASTIC_APM_SECRET_TOKEN", nil) %>
-  server_url: <%= ENV.fetch("ELASTIC_APM_SERVER_URL", "http://localhost:8200") %>
-  environment: <%= Rails.env %>
-  enabled: <%= ENV.fetch("ELASTIC_APM_ENABLED", Rails.env.production?.to_s) %>
-  capture_body: errors
-  log_level: info
+# Elastic APM configuration
+# https://www.elastic.co/guide/en/apm/agent/ruby/current/configuration.html
+#
+# All options can be overridden via environment variables prefixed with ELASTIC_APM_
+# e.g. ELASTIC_APM_SERVER_URL, ELASTIC_APM_SECRET_TOKEN, ELASTIC_APM_ACTIVE
 
-production:
-  <<: *defaults
+service_name: 'unight-api'
+api_request_time: '10s'
 
-development:
-  <<: *defaults
-  enabled: true
+# Ignore health check and metrics endpoints
+ignore_url_patterns:
+  - ^/up$
+  - ^/metrics$
+  - ^/health$
 
-test:
-  <<: *defaults
-  enabled: false
+# Capture request body (none | errors | transactions | all)
+capture_body: 'off'
+
+log_level: 'info'
+
+# Record SQL queries as spans
+span_frames_min_duration: -1
+
+# Filter sensitive keys from request/response data
+custom_key_filters:
+  - !!ruby/regexp /password/i
+  - !!ruby/regexp /secret/i
+  - !!ruby/regexp /token/i
+  - !!ruby/regexp /api_key/i
+  - !!ruby/regexp /access_key/i
 ```
 
 If you prefer an initializer for additional tuning, create `config/initializers/elastic_apm.rb`:
@@ -242,7 +253,7 @@ end
 Set the required environment variables in your deployment platform:
 
 ```bash
-ELASTIC_APM_ENABLED=true
+ELASTIC_APM_ACTIVE=true
 ELASTIC_APM_SERVER_URL=https://apm.example.com:8200
 ELASTIC_APM_SECRET_TOKEN=your-secret-token
 ```
@@ -289,31 +300,17 @@ Prefer stable identifiers such as `id` or `account_id`, and avoid sending sensit
 
 ### Disabling Elastic APM for Health and Metrics Endpoints
 
-Healthcheck and scrape endpoints such as `/up`, `/metrics`, `/health`, and `/readiness` usually create noisy low-value traces. Exclude them using `ignore_url_patterns` in `config/elastic_apm.yml`:
+Healthcheck and scrape endpoints such as `/up`, `/metrics`, and `/health` usually create noisy low-value traces. Exclude them using `ignore_url_patterns` in `config/elastic_apm.yml`:
 
 ```yaml
-defaults: &defaults
-  # ... other config ...
-  ignore_url_patterns:
-    - ^/up$
-    - ^/metrics$
-    - ^/health$
-    - ^/readiness$
-    - ^/liveness$
+# ... other config ...
+ignore_url_patterns:
+- ^/up$
+- ^/metrics$
+- ^/health$
 ```
 
 These patterns are regular expressions matched against the request path. Add any internal-only endpoints you do not want traced.
-
-If you need environment-specific exclusions, override them per environment:
-
-```yaml
-production:
-  <<: *defaults
-  ignore_url_patterns:
-    - ^/up$
-    - ^/metrics$
-    - ^/internal/.*
-```
 
 Use this for endpoints hit very frequently by load balancers, Kubernetes probes, Prometheus, or uptime monitors.
 
