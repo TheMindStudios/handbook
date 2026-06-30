@@ -23,6 +23,7 @@ Our collection of guides, recipes and scripts for helping you get things done, b
   - [Store Secrets](guides/store_secrets.md)
   - [Localization](guides/localization.md)
   - [Metrics and Logging](guides/metrics_and_logging.md)
+  - [AI Guide](guides/ai_guide.md)
 
 ### Inspired by
 
